@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <style>
+        /* 蛋糕图标动画样式 */
+        .cake-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        
+        .floating-cake {
+            position: absolute;
+            font-size: 20px;
+            animation: floatDown 6s ease-in-out infinite;
+            opacity: 0;
+        }
+        
+        @keyframes floatDown {
+            0% {
+                transform: translateX(0) translateY(-100px) rotate(0deg) scale(0.8);
+                opacity: 0.6;
+            }
+            25% {
+                transform: translateX(var(--horizontal-amplitude, 20px)) translateY(calc(30vh)) rotate(90deg) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translateX(calc(var(--horizontal-amplitude, 20px) * -1)) translateY(calc(60vh)) rotate(180deg) scale(1.1);
+                opacity: 1;
+            }
+            75% {
+                transform: translateX(var(--horizontal-amplitude, 20px)) translateY(calc(90vh)) rotate(270deg) scale(1);
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateX(0) translateY(120vh) rotate(360deg) scale(0.8);
+                opacity: 0;
+            }
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            z-index: 10;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #e74c3c;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .birthday-message {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #555;
+            opacity: 0;
+            animation: fadeIn 1.5s ease forwards;
+        }
+        
+        .birthday-message p {
+            margin-bottom: 15px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 1s ease forwards;
+        }
+        
+        .birthday-message p:nth-child(1) {
+            animation-delay: 0.5s;
+        }
+        
+        .birthday-message p:nth-child(2) {
+            animation-delay: 1s;
+        }
+        
+        .birthday-message p:nth-child(3) {
+            animation-delay: 1.5s;
+        }
+        
+        .birthday-message p:nth-child(4) {
+            animation-delay: 2s;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .birthday-cake {
+            font-size: 4em;
+            margin: 20px 0;
+            animation: bounce 2s infinite;
+        }
+        
+        .audio-control {
+            margin-top: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        
+        audio {
+            display: none;
+        }
+        
+        .custom-play-button {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .custom-play-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .custom-play-button::before {
+            content: '🎵';
+            font-size: 30px;
+            animation: rotate 3s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 音乐可视化样式 */
+        .visualization {
+            position: relative;
+            width: 60px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .visualization.left {
+            justify-content: flex-end;
+        }
+        
+        .visualization.right {
+            justify-content: flex-start;
+        }
+        
+        /* 调整音频控制的整体布局 */
+        .audio-control {
+            margin-top: 40px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .visualization-line {
+            position: absolute;
+            width: 4px;
+            height: 10px;
+            background: linear-gradient(to top, #667eea, #48bfe3);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+        }
+        
+        /* 左侧线条位置 - 调整为与播放按钮更近的对称分布 */
+        .visualization.left .visualization-line:nth-child(1) { left: 35px; top: 50%; transform: translateY(-50%); }
+        .visualization.left .visualization-line:nth-child(2) { left: 25px; top: 50%; transform: translateY(-50%); }
+        .visualization.left .visualization-line:nth-child(3) { left: 15px; top: 50%; transform: translateY(-50%); }
+        .visualization.left .visualization-line:nth-child(4) { left: 5px; top: 50%; transform: translateY(-50%); }
+        
+        /* 右侧线条位置 - 调整为与播放按钮更近的对称分布 */
+        .visualization.right .visualization-line:nth-child(1) { left: 5px; top: 50%; transform: translateY(-50%); }
+        .visualization.right .visualization-line:nth-child(2) { left: 15px; top: 50%; transform: translateY(-50%); }
+        .visualization.right .visualization-line:nth-child(3) { left: 25px; top: 50%; transform: translateY(-50%); }
+        .visualization.right .visualization-line:nth-child(4) { left: 35px; top: 50%; transform: translateY(-50%); }
+        
+        /* 跳动动画 */
+        @keyframes jump {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+        
+        /* 默认跳动状态 */
+        .visualization-line { animation: jump 0.5s ease-in-out infinite; }
+        
+        /* 交错动画延迟 */
+        .visualization-line:nth-child(2) { animation-delay: 0.1s; }
+        .visualization-line:nth-child(3) { animation-delay: 0.2s; }
+        .visualization-line:nth-child(4) { animation-delay: 0.3s; }
+        
+        .decorations {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 2.5em;
+            gap: 30px;
+        }
+        
+        .decorations span {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.1));
+        }
+        
+        /* 彩花图标效果 */
+        .decorations span:nth-child(1):hover {
+            transform: scale(1.3) rotate(10deg);
+            filter: drop-shadow(0 10px 20px rgba(255, 105, 180, 0.6));
+        }
+        
+        /* 气球图标效果 */
+        .decorations span:nth-child(2):hover {
+            transform: scale(1.3) translateY(-10px);
+            filter: drop-shadow(0 10px 20px rgba(30, 144, 255, 0.6));
+            animation: float 1s ease-in-out infinite;
+        }
+        
+        /* 星星图标效果 */
+        .decorations span:nth-child(3):hover {
+            transform: scale(1.3) rotate(180deg);
+            filter: drop-shadow(0 10px 20px rgba(255, 215, 0, 0.6));
+            animation: twinkle 1s ease-in-out infinite;
+        }
+        
+        /* 礼物盒图标效果 */
+        .decorations span:nth-child(4):hover {
+            transform: scale(1.3) translateY(-5px);
+            filter: drop-shadow(0 10px 20px rgba(255, 99, 71, 0.6));
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: scale(1.3) translateY(-10px); }
+            50% { transform: scale(1.3) translateY(-20px); }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .birthday-message {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cake-container" id="cakeContainer"></div>
+    <div class="container">
+        <div class="birthday-cake">🎂</div>
+        <h1>Happy Birthday!</h1>
+        <div class="birthday-message">
+            <p>🎂 今天是属于你的特别日子，愿快乐如阳光般温暖你的每一个清晨！</p>
+            <p>✨ 愿所有的美好都如期而至，所有的梦想都能在新的一岁里绽放光芒！</p>
+            <p>💖 愿你的生活永远充满甜蜜与惊喜，每一天都像今天一样被爱与幸福包围！</p>
+            <p>🎉 祝你生日快乐，岁岁平安，永远保持那份纯真与快乐！</p>
+        </div>
+        <div class="audio-control">
+            <div class="visualization left"></div>
+            <audio id="birthdayAudio" loop>
+                <source src="birthday.mp3" type="audio/mpeg">
+                您的浏览器不支持音频播放功能。
+            </audio>
+            <div class="custom-play-button" id="playButton"></div>
+            <div class="visualization right"></div>
+        </div>
+        
+        <script>
+            const audio = document.getElementById('birthdayAudio');
+            const playButton = document.getElementById('playButton');
+            const leftVisualization = document.querySelector('.visualization.left');
+            const rightVisualization = document.querySelector('.visualization.right');
+            let isPlaying = false;
+            
+            // 创建可视化线条
+            function createVisualizationLines() {
+                // 为左右两侧各创建4条线条
+                for (let i = 0; i < 4; i++) {
+                    const leftLine = document.createElement('div');
+                    leftLine.className = 'visualization-line';
+                    leftVisualization.appendChild(leftLine);
+                    
+                    const rightLine = document.createElement('div');
+                    rightLine.className = 'visualization-line';
+                    rightVisualization.appendChild(rightLine);
+                }
+            }
+            
+            // 音频分析相关变量
+            let audioContext = null;
+            let analyser = null;
+            let dataArray = null;
+            let source = null;
+            let animationId = null;
+            
+            // 初始化音频分析器
+            function initAudioAnalyzer() {
+                if (!audioContext || !analyser) {
+                    try {
+                        // 确保音频上下文已初始化
+                        if (!audioContext) {
+                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        }
+                        
+                        analyser = audioContext.createAnalyser();
+                        analyser.fftSize = 128;
+                        const bufferLength = analyser.frequencyBinCount;
+                        dataArray = new Uint8Array(bufferLength);
+                        
+                        // 确保音频源已连接
+                        if (!source) {
+                            source = audioContext.createMediaElementSource(audio);
+                            // 连接音频源到分析器
+                            source.connect(analyser);
+                            // 连接分析器到输出设备
+                            analyser.connect(audioContext.destination);
+                            console.log('Audio analyzer initialized successfully');
+                        }
+                    } catch (error) {
+                        console.error('Failed to initialize audio analyzer:', error);
+                        console.error('Error details:', error.message, error.name);
+                        // 即使分析器初始化失败，音频仍然可以播放
+                        console.log('Audio will play without visualization');
+                    }
+                }
+            }
+            
+            // 可视化动画循环
+            function visualize() {
+                if (!isPlaying) return;
+                
+                const lines = document.querySelectorAll('.visualization-line');
+                
+                // 如果分析器未初始化或出现问题，使用默认的动画效果
+                if (!analyser || !dataArray) {
+                    // 默认的简单跳动效果
+                    lines.forEach((line, index) => {
+                        const defaultHeight = 10 + Math.sin(Date.now() * 0.01 + index * 0.5) * 20;
+                        line.style.height = defaultHeight + 'px';
+                    });
+                } else {
+                    try {
+                        const numLines = lines.length;
+                        const halfLines = numLines / 2;
+                        
+                        // 获取频率数据
+                        analyser.getByteFrequencyData(dataArray);
+                        
+                        // 将频率数据应用到线条高度
+                        lines.forEach((line, index) => {
+                            // 计算对称的频率索引，使左右两侧线条对称跳动
+                            let frequencyIndex;
+                            if (index < halfLines) {
+                                // 左侧线条：从中心向外
+                                frequencyIndex = Math.floor(((halfLines - 1 - index) / halfLines) * dataArray.length / 2);
+                            } else {
+                                // 右侧线条：从外向中心
+                                frequencyIndex = Math.floor(((index - halfLines) / halfLines) * dataArray.length / 2);
+                            }
+                            
+                            const amplitude = dataArray[frequencyIndex] || 0;
+                            
+                            // 将振幅转换为线条高度（0-50px）
+                            const height = Math.max(10, (amplitude / 255) * 50);
+                            line.style.height = height + 'px';
+                        });
+                    } catch (error) {
+                        console.error('Visualization error:', error);
+                        // 使用默认动画作为备选
+                        lines.forEach((line, index) => {
+                            const defaultHeight = 10 + Math.sin(Date.now() * 0.01 + index * 0.5) * 20;
+                            line.style.height = defaultHeight + 'px';
+                        });
+                    }
+                }
+                
+                animationId = requestAnimationFrame(visualize);
+            }
+            
+            // 停止可视化
+            function stopVisualize() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                
+                // 重置线条高度
+                const lines = document.querySelectorAll('.visualization-line');
+                lines.forEach(line => {
+                    line.style.height = '10px';
+                });
+            }
+            
+            // 更新播放按钮状态
+            function updatePlayButton() {
+                if (isPlaying) {
+                    playButton.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.7)';
+                } else {
+                    playButton.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.2)';
+                }
+            }
+            
+            // 尝试自动播放
+            function tryAutoPlay() {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayButton();
+                    console.log('Audio started playing automatically');
+                }).catch(error => {
+                    console.log('Auto-play was prevented:', error);
+                    // 显示用户需要手动点击播放按钮的提示
+                    console.log('Please click the play button to start audio');
+                });
+            }
+            
+            // 点击按钮控制播放/暂停
+            playButton.addEventListener('click', async () => {
+                if (isPlaying) {
+                    audio.pause();
+                } else {
+                    try {
+                        // 确保音频上下文已初始化且处于运行状态
+                        if (!audioContext) {
+                            // 初始化音频上下文
+                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        }
+                        
+                        if (audioContext.state === 'suspended') {
+                            await audioContext.resume();
+                        }
+                        
+                        // 检查音频是否已加载
+                        if (audio.readyState < 3) {
+                            // 音频尚未加载完成，等待加载完成后再播放
+                            await new Promise((resolve) => {
+                                audio.addEventListener('canplaythrough', resolve, { once: true });
+                            });
+                        }
+                        
+                        await audio.play();
+                        console.log('Audio started playing via button click');
+                    } catch (error) {
+                        console.error('Failed to play audio:', error);
+                        console.error('Error details:', error.message, error.name);
+                        
+                        // 尝试直接播放，不使用 await
+                        audio.play().catch(err => {
+                            console.error('Retry failed:', err);
+                            console.error('Please check if the audio file exists and is accessible');
+                        });
+                    }
+                }
+            });
+            
+            // 音频事件监听器
+            audio.addEventListener('play', () => {
+                isPlaying = true;
+                updatePlayButton();
+                // 初始化音频分析器
+                initAudioAnalyzer();
+                // 开始可视化
+                visualize();
+                console.log('Audio is now playing');
+            });
+            
+            audio.addEventListener('pause', () => {
+                isPlaying = false;
+                updatePlayButton();
+                // 停止可视化
+                stopVisualize();
+                console.log('Audio is now paused');
+            });
+            
+            // 监听音频加载错误
+            audio.addEventListener('error', (e) => {
+                console.error('Audio error:', e);
+                console.error('Audio error code:', e.target.error.code);
+                console.error('Error message:', e.target.error.message);
+                
+                // 错误代码含义：
+                // 1 = MEDIA_ERR_ABORTED - 音频加载被用户中断
+                // 2 = MEDIA_ERR_NETWORK - 网络错误导致加载失败
+                // 3 = MEDIA_ERR_DECODE - 音频解码失败
+                // 4 = MEDIA_ERR_SRC_NOT_SUPPORTED - 音频格式不支持
+                
+                // 根据错误代码提供更具体的建议
+                switch (e.target.error.code) {
+                    case 2:
+                        console.error('Check if the server is running and the audio file exists');
+                        break;
+                    case 3:
+                        console.error('Check if the audio file is in a supported format (MP3)');
+                        break;
+                    case 4:
+                        console.error('Your browser may not support this audio format');
+                        break;
+                }
+            });
+            
+            // 监听音频加载完成
+            audio.addEventListener('loadeddata', () => {
+                console.log('Audio loaded successfully');
+                console.log('Audio duration:', audio.duration);
+                console.log('Audio readyState:', audio.readyState);
+            });
+            
+            // 监听音频可以播放
+            audio.addEventListener('canplaythrough', () => {
+                console.log('Audio can be played through without buffering');
+            });
+            
+            // 页面加载后创建可视化线条并尝试自动播放
+            window.addEventListener('load', () => {
+                createVisualizationLines();
+                tryAutoPlay();
+            });
+            
+            // 当用户与页面交互时也尝试自动播放
+            document.addEventListener('click', tryAutoPlay, { once: true });
+            document.addEventListener('touchstart', tryAutoPlay, { once: true });
+            document.addEventListener('keydown', tryAutoPlay, { once: true });
+            
+            // 确保音频源路径正确
+            console.log('Audio source:', audio.src);
+            console.log('Current directory:', window.location.href);
+            
+            // 装饰图标点击事件
+            const decorationIcons = document.querySelectorAll('.decorations span');
+            
+            decorationIcons.forEach((icon, index) => {
+                icon.addEventListener('click', () => {
+                    // 点击时添加点击反馈动画
+                    icon.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        icon.style.transform = '';
+                    }, 150);
+                    
+                    // 根据不同图标播放不同音效（可选）
+                    console.log(`点击了${index + 1}号装饰图标`);
+                });
+            });
+            
+            // 蛋糕图标浮动动画
+            const cakeContainer = document.getElementById('cakeContainer');
+            const cakeIcon = '🎂';
+            const maxCakes = 50; // 最大同时显示的蛋糕数量
+            
+            // 创建单个蛋糕图标
+            function createCake() {
+                const cake = document.createElement('div');
+                cake.className = 'floating-cake';
+                cake.textContent = cakeIcon;
+                
+                // 随机水平位置
+                cake.style.left = Math.random() * 100 + '%';
+                
+                // 随机大小（自适应不同屏幕）
+                const size = Math.random() * 20 + 15;
+                cake.style.fontSize = size + 'px';
+                
+                // 随机动画延迟
+                const delay = Math.random() * 6;
+                cake.style.animationDelay = delay + 's';
+                
+                // 随机动画持续时间（更长的范围使动画更自然）
+                const duration = Math.random() * 7 + 5;
+                cake.style.animationDuration = duration + 's';
+                
+                // 随机水平移动幅度
+                const horizontalAmplitude = Math.random() * 40 + 10;
+                cake.style.setProperty('--horizontal-amplitude', horizontalAmplitude + 'px');
+                
+                // 随机缩放比例
+                const scale = Math.random() * 0.5 + 0.8;
+                cake.style.transform = `translateY(-100px) rotate(0deg) scale(${scale})`;
+                
+                // 随机透明度变化
+                const startOpacity = Math.random() * 0.4 + 0.6;
+                cake.style.opacity = startOpacity;
+                
+                // 添加到容器
+                cakeContainer.appendChild(cake);
+                
+                // 动画结束后移除蛋糕元素
+                cake.addEventListener('animationend', () => {
+                    cake.remove();
+                });
+            }
+            
+            // 定期创建新的蛋糕图标
+            function startCakeAnimation() {
+                const interval = setInterval(() => {
+                    if (cakeContainer.children.length < maxCakes) {
+                        createCake();
+                    }
+                }, 200);
+                
+                // 页面卸载时清除定时器
+                window.addEventListener('beforeunload', () => {
+                    clearInterval(interval);
+                });
+            }
+            
+            // 页面加载后开始蛋糕动画
+            window.addEventListener('load', startCakeAnimation);
+        </script>
+        <div class="decorations">
+            <span>🎉</span>
+            <span>🎈</span>
+            <span>✨</span>
+            <span>🎁</span>
+        </div>
+    </div>
+</body>
+</html>
